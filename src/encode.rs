@@ -1,12 +1,12 @@
 //! Simple RLP encoding library
 
-use borsh::{self, BorshDeserialize, BorshSerialize};
-use serde::{Deserialize, Serialize};
+use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
+use near_sdk::serde::{Deserialize, Serialize};
 
-/// RLP encoding struct
+/// RLP Encoding Struct
 #[derive(BorshDeserialize, BorshSerialize, Clone, Debug, Default, Deserialize, Serialize)]
-#[serde(crate = "serde")]
-pub struct RlpEncode(Vec<u8>);
+#[serde(crate = "near_sdk::serde")]
+pub struct RlpEncode;
 
 impl RlpEncode {
     /// Starting point for short u8
@@ -20,35 +20,50 @@ impl RlpEncode {
     const MAX_UINT64: u64 = u64::MAX;
     const MAX_UINT128: u128 = u128::MAX;
 
-    /// RLP-encode a byte string
-    /// Returns the RLP encoded string in bytes
-    fn encode_bytes(bytes: Self) -> Vec<u8> {
+    fn get_rlp_encoded(&self) -> Vec<u8> {
+        Self::try_to_vec(self).expect("Failed to serialize RlpEncode")
+    }
+
+    /// RLP-encode a byte string.
+    /// Returns the RLP encoded string in bytes.
+    pub fn encode_bytes(bytes: Self) -> Vec<u8> {
         let encoded: Vec<u8>;
-        if bytes.0.len() == 1 && bytes.0[0] <= 128 {
-            encoded = bytes.0.clone();
+        let rlp = bytes.get_rlp_encoded();
+        if rlp.len() == 1 && rlp[0] <= 128 {
+            encoded = rlp.clone();
         } else {
-            encoded = Self::concat(&Self::encode_length(bytes.0.len(), 128), &bytes.0);
+            encoded = Self::concat(&Self::encode_length(rlp.len(), 128), &rlp);
         }
         encoded
     }
 
-    /// RLP-encode a list of RLP encoded byte strings
-    /// Returns the RLP encoded list of items in bytes
-    fn encode_list(bytes: Vec<Self>) -> Vec<u8> {
+    /// RLP-encode a list of RLP-encoded byte strings.
+    /// Returns the RLP encoded list of items in bytes.
+    pub fn encode_list(bytes: Vec<Self>) -> Vec<u8> {
+        let mut rlp_list: Vec<Vec<u8>> = vec![];
+        for entry in bytes {
+            let rlp = entry.get_rlp_encoded();
+            rlp_list.push(rlp);
+        }
+        let list = Self::flatten(rlp_list);
+        Self::concat(&Self::encode_length(list.len(), 192), &list)
+    }
+
+    /// RLP-encode a uint.
+    /// Returns the RLP encoded uint in bytes.
+    pub fn encode_uint(item: Self) -> Vec<u8> {
+        let rlp_encode = item.get_rlp_encoded();
+        let n_bytes = Self::bit_length(rlp_encode.len()) / 8 + 1;
+        let uint_bytes = Self::encode_uint_by_length(rlp_encode.len());
+        if n_bytes - uint_bytes.len() > 0 {}
+        Self::encode_bytes(item)
+    }
+
+    pub fn encode_int() -> Vec<u8> {
         todo!()
     }
 
-    /// RLP-encode a uint
-    /// Returns the RLP encoded uint in bytes
-    fn encode_uint() -> Vec<u8> {
-        todo!()
-    }
-
-    fn encode_int() -> Vec<u8> {
-        todo!()
-    }
-
-    fn encode_bool() -> Vec<u8> {
+    pub fn encode_bool() -> Vec<u8> {
         todo!()
     }
 

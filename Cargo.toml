@@ -4,9 +4,15 @@ version = "0.1.0"
 description = "Simple Recursive Length Prefix serialization & deserialization library"
 authors = ["Kobby Pentangeli <kobbypentangeli@gmail.com>"]
 repository = "https://github.com/kobby-pentangeli/simple-rlp"
-license = "Apache 2.0"
+license = "MIT"
 edition = "2018"
+keywords = ["rlp", "encode", "decode", "serialization", "deserialization"]
+categories = ["wasm"]
+
+[lib]
+crate-type = ["cdylib", "rlib"]
 
 [dependencies]
-borsh = "0.9.1"
+near-sdk = "3.1.0"
 serde = { version = "1.0", features = ["derive"] }
+serde_derive = "1.0"
