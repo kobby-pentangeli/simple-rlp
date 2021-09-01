@@ -1,4 +1,4 @@
-//! Simple Recursive Length Prefix serialization & deserialization library
+//! Simple Recursive Length Prefix serialization & deserialization library (Work in Progress)
 
 #![forbid(
     arithmetic_overflow,
